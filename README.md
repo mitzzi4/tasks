@@ -1,33 +1,33 @@
 # Tasks
 
-Простой трекер задач с недельным планировщиком. Помогает не забывать про дела и заранее видеть, что запланировано на неделю вперёд.
+A simple task tracker with a weekly planner. It helps you stay on top of your tasks and see what’s planned for the week ahead.
 
-## Возможности
+## Possibilities
 
-- Добавление, редактирование и удаление задач через всплывающее окно
-- Планирование по дням недели, переключение между неделями
-- Приоритеты (высокий / средний / низкий) с цветовой индикацией прямо на днях недели
-- Теги и поиск по задачам
-- Автоматическая группировка: просроченные, сегодня, на этой неделе, позже, без срока, выполненные
-- Тёмная тема (подстраивается под системные настройки)
-- Адаптивная вёрстка
+- Add, edit, and delete tasks via a pop-up window
+- Day-based scheduling and week switching
+- Priority levels (high/medium/low) with color coding displayed directly on the days
+- Tags and task search
+- Automatic grouping: Overdue, Today, This Week, Later, No Due Date, Completed
+- Dark mode (adapts to system settings)
+- Responsive layout
 
-## Технологии
+## Technologies
 
-HTML, CSS и JavaScript
+HTML, CSS and JavaScript
 
-## Как запустить
+## How to launch
 
-Открыть `index.html` в браузере
+Open `index.html` in the browser.
 
-## Хранение данных
+## Data storage
 
-Все задачи хранятся в `localStorage` браузера. Это значит, что данные привязаны к конкретному браузеру на конкретном устройстве и не синхронизируются между разными устройствами.
+All tasks are stored in the browser's localStorage. This means that the data is tied to a specific browser on a specific device and is not synchronized across different devices.
 
-## Структура проекта
+## Project structure
 
 ```
-index.html   — разметка страницы
-styles.css   — стили
-script.js    — вся логика приложения
+index.html   — page markup
+styles.css   — styles
+script.js    — all application logic
 ```
