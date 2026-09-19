@@ -1,7 +1,132 @@
 <!doctype html>
 <html lang="ru">
 <head>
+<meta charset="utf-8"><!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Tasks</h1>
+      <div class="date" id="todayLabel"></div>
+    </div>
+    <div id="syncState"><span class="dot"></span><span id="syncLabel">Connecting…</span></div>
+  </header>
+
+  <div class="overview">
+    <div class="stats">
+      <div class="stat"><div class="n" id="statActive">0</div><div class="lbl">Active</div></div>
+      <div class="stat overdue"><div class="n" id="statOverdue">0</div><div class="lbl">Overdue</div></div>
+      <div class="stat"><div class="n" id="statDone">0</div><div class="lbl">Done</div></div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-head">
+        <button type="button" class="wk-arrow" id="weekPrev" aria-label="Previous week">‹</button>
+        <div class="week-label" id="weekLabel"></div>
+        <div class="week-nav-right">
+          <button type="button" class="week-today" id="weekToday">Today</button>
+          <button type="button" class="wk-arrow" id="weekNext" aria-label="Next week">›</button>
+        </div>
+      </div>
+      <div class="week-strip" id="weekStrip"></div>
+    </div>
+  </div>
+
+  <div class="list-head">
+    <div class="list-title" id="listTitle"></div>
+    <button type="button" class="detailsToggle" id="clearDayBtn" hidden>All tasks ×</button>
+  </div>
+
+  <div class="toolbar">
+    <input id="searchInput" type="text" placeholder="Search…">
+    <select id="tagFilter"><option value="">All tags</option></select>
+    <select id="sortSelect">
+      <option value="smart">Default</option>
+      <option value="due">By due date</option>
+      <option value="priority">By priority</option>
+      <option value="created">By date added</option>
+    </select>
+    <label><input type="checkbox" id="showDone"> Completed</label>
+  </div>
+
+  <div id="list"></div>
+  <div class="hint" id="seedHint" hidden>These are examples — edit or delete them and add your own tasks.</div>
+</div>
+
+<button type="button" class="fab" id="fabAdd" aria-label="New task">+</button>
+
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+    <div class="modal-head">
+      <h2 id="modalHeading">New task</h2>
+      <button type="button" class="modal-close" id="modalClose" aria-label="Close">×</button>
+    </div>
+    <form id="addForm">
+      <div class="modal-body">
+        <input id="titleInput" type="text" placeholder="Task name" maxlength="200" required>
+        <div class="drow">
+          <input id="dueInput" type="date">
+          <select id="prioInput">
+            <option value="low">Low priority</option>
+            <option value="medium" selected>Medium priority</option>
+            <option value="high">High priority</option>
+          </select>
+        </div>
+        <input id="tagsInput" type="text" placeholder="Tags, comma separated">
+        <textarea id="descInput" placeholder="Note (optional)"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="ghost" id="modalCancel">Cancel</button>
+        <button type="submit" class="primary">Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editHeading">
+    <div class="modal-head">
+      <h2 id="editHeading">Task</h2>
+      <button type="button" class="modal-close" id="editClose" aria-label="Close">×</button>
+    </div>
+    <form id="editForm">
+      <div class="modal-body">
+        <input id="editTitle" type="text" placeholder="Task name" maxlength="200" required>
+        <div class="drow">
+          <input id="editDue" type="date">
+          <select id="editPrio">
+            <option value="low">Low priority</option>
+            <option value="medium">Medium priority</option>
+            <option value="high">High priority</option>
+          </select>
+        </div>
+        <input id="editTags" type="text" placeholder="Tags, comma separated">
+        <textarea id="editDesc" placeholder="Note (optional)"></textarea>
+      </div>
+      <div class="modal-actions between">
+        <button type="button" class="link" id="editDelete">Delete</button>
+        <div class="right">
+          <button type="button" class="ghost" id="editCancel">Cancel</button>
+          <button type="submit" class="primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tasks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
