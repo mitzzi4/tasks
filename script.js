@@ -11,8 +11,6 @@
 
   const listEl = document.getElementById('list');
   const seedHint = document.getElementById('seedHint');
-  const syncStateEl = document.getElementById('syncState');
-  const syncLabelEl = document.getElementById('syncLabel');
 
   document.getElementById('todayLabel').textContent =
     new Intl.DateTimeFormat('en-US', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -31,12 +29,12 @@
   }
 
   function closeModal() {
+    closeAllPickers();
     modalOverlay.classList.remove('show');
     setTimeout(() => { modalOverlay.hidden = true; }, 180);
   }
 
   document.getElementById('fabAdd').addEventListener('click', openModal);
-  document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('modalCancel').addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
 
@@ -55,11 +53,11 @@
   }
 
   function closeEditModal() {
+    closeAllPickers();
     editOverlay.classList.remove('show');
     setTimeout(() => { editOverlay.hidden = true; editingId = null; }, 180);
   }
 
-  document.getElementById('editClose').addEventListener('click', closeEditModal);
   document.getElementById('editCancel').addEventListener('click', closeEditModal);
   editOverlay.addEventListener('click', e => { if (e.target === editOverlay) closeEditModal(); });
 
@@ -88,6 +86,258 @@
     if (!editOverlay.hidden) closeEditModal();
     else if (!modalOverlay.hidden) closeModal();
   });
+
+  // ---------- custom pickers (priority list, calendar) ----------
+  // The native <select> / <input type="date"> stay in the DOM as hidden value holders,
+  // so the rest of the code keeps reading and writing .value exactly as before.
+  const pickers = [];
+
+  function onValueSet(el, cb) {
+    const native = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get() { return native.get.call(this); },
+      set(v) { native.set.call(this, v); cb(); },
+    });
+  }
+
+  function closeAllPickers(except) {
+    pickers.forEach(p => { if (p !== except) p.hide(); });
+  }
+
+  function placePopup(p) {
+    const r = p.btn.getBoundingClientRect();
+    const popH = p.pop.offsetHeight;
+    const popW = p.pop.offsetWidth;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const above = spaceBelow < popH + 12 && r.top > spaceBelow;
+    p.pop.classList.toggle('above', above);
+    p.pop.style.top = (above ? r.top - popH - 6 : r.bottom + 6) + 'px';
+    p.pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - popW - 8)) + 'px';
+  }
+
+  function makePicker(nativeEl, kind) {
+    const wrap = document.createElement('div');
+    wrap.className = 'picker picker-' + kind;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'picker-btn';
+    btn.setAttribute('aria-expanded', 'false');
+    const pop = document.createElement('div');
+    pop.className = 'picker-pop';
+    pop.id = nativeEl.id + 'Pop';
+    btn.setAttribute('aria-controls', pop.id);
+    nativeEl.before(wrap);
+    wrap.append(btn, pop, nativeEl);
+    nativeEl.hidden = true;
+    nativeEl.tabIndex = -1;
+
+    const p = {
+      wrap, btn, pop, isOpen: false,
+      render() {}, focusInside() {},
+      show() {
+        closeAllPickers(p);
+        p.isOpen = true;
+        wrap.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        p.render();
+        placePopup(p);
+        p.focusInside();
+      },
+      hide(refocus) {
+        if (!p.isOpen) return;
+        p.isOpen = false;
+        wrap.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        if (refocus) btn.focus({ preventScroll: true });
+      },
+    };
+    btn.addEventListener('click', () => (p.isOpen ? p.hide() : p.show()));
+    // clicks inside the popup must not steal focus, or focusout below would close it mid-click
+    pop.addEventListener('mousedown', e => e.preventDefault());
+    // checked a tick later: re-rendering the calendar removes the focused day, which fires
+    // focusout with no target even though focus is about to land on the new day
+    wrap.addEventListener('focusout', () => {
+      setTimeout(() => { if (!wrap.contains(document.activeElement)) p.hide(); });
+    });
+    // Escape closes only the popup, not the whole modal (the modal listens on document)
+    wrap.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && p.isOpen) { e.stopPropagation(); p.hide(true); }
+    });
+    pickers.push(p);
+    return p;
+  }
+
+  document.addEventListener('pointerdown', e => {
+    pickers.forEach(p => { if (p.isOpen && !p.wrap.contains(e.target)) p.hide(); });
+  });
+  document.addEventListener('scroll', () => pickers.forEach(p => { if (p.isOpen) placePopup(p); }), true);
+  window.addEventListener('resize', () => closeAllPickers());
+
+  function enhanceSelect(sel) {
+    const p = makePicker(sel, 'select');
+    const opts = Array.from(sel.options);
+    p.btn.setAttribute('aria-haspopup', 'listbox');
+    p.btn.innerHTML = '<span class="picker-labels">' + opts.map(o => `<span>${escapeHtml(o.text)}</span>`).join('') + '</span>';
+    const labels = Array.from(p.btn.firstChild.children);
+    p.pop.setAttribute('role', 'listbox');
+    p.pop.tabIndex = -1;
+    p.pop.innerHTML = opts.map((o, i) =>
+      `<div class="picker-opt" role="option" id="${sel.id}Opt${i}" data-i="${i}">${escapeHtml(o.text)}</div>`).join('');
+    const items = Array.from(p.pop.children);
+    let active = 0;
+
+    function setActive(i) {
+      active = (i + items.length) % items.length;
+      items.forEach((el, j) => el.classList.toggle('active', j === active));
+      p.pop.setAttribute('aria-activedescendant', items[active].id);
+    }
+    function sync() {
+      const cur = sel.selectedIndex;
+      labels.forEach((el, j) => el.classList.toggle('on', j === cur));
+      items.forEach((el, j) => el.setAttribute('aria-selected', String(j === cur)));
+    }
+    function choose(i) {
+      sel.value = opts[i].value;
+      p.hide(true);
+    }
+
+    p.render = () => {
+      p.pop.style.minWidth = p.btn.offsetWidth + 'px';
+      setActive(Math.max(0, sel.selectedIndex));
+    };
+    p.focusInside = () => p.pop.focus({ preventScroll: true });
+
+    p.btn.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); p.show(); }
+    });
+    p.pop.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') setActive(active + 1);
+      else if (e.key === 'ArrowUp') setActive(active - 1);
+      else if (e.key === 'Home') setActive(0);
+      else if (e.key === 'End') setActive(items.length - 1);
+      else if (e.key === 'Enter' || e.key === ' ') choose(active);
+      else return;
+      e.preventDefault();
+    });
+    p.pop.addEventListener('mousemove', e => {
+      const opt = e.target.closest('.picker-opt');
+      if (opt && +opt.dataset.i !== active) setActive(+opt.dataset.i);
+    });
+    p.pop.addEventListener('click', e => {
+      const opt = e.target.closest('.picker-opt');
+      if (opt) choose(+opt.dataset.i);
+    });
+
+    onValueSet(sel, sync);
+    sync();
+  }
+
+  function enhanceDate(input) {
+    const p = makePicker(input, 'date');
+    p.btn.setAttribute('aria-haspopup', 'dialog');
+    p.pop.setAttribute('role', 'dialog');
+    p.pop.setAttribute('aria-label', 'Choose due date');
+    p.pop.innerHTML = `
+      <div class="cal-head">
+        <button type="button" class="cal-nav cal-prev" aria-label="Previous month"></button>
+        <div class="cal-title" aria-live="polite"></div>
+        <button type="button" class="cal-nav cal-next" aria-label="Next month"></button>
+      </div>
+      <div class="cal-grid"></div>
+      <div class="cal-foot">
+        <button type="button" class="cal-link" data-act="clear">Clear</button>
+        <button type="button" class="cal-link" data-act="today">Today</button>
+      </div>`;
+    const titleEl = p.pop.querySelector('.cal-title');
+    const grid = p.pop.querySelector('.cal-grid');
+    const fmtLong = new Intl.DateTimeFormat('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    let focusIso = todayISO();
+
+    function sync() {
+      const v = input.value;
+      p.btn.textContent = v ? v.split('-').reverse().join('.') : 'Due date';
+      p.btn.classList.toggle('no-value', !v);
+      p.btn.setAttribute('aria-label', v ? 'Due date: ' + fmtLong.format(new Date(v + 'T00:00:00')) : 'Due date: none');
+    }
+
+    function renderMonth(moveFocus) {
+      const f = new Date(focusIso + 'T00:00:00');
+      const first = new Date(f.getFullYear(), f.getMonth(), 1);
+      const lead = (first.getDay() + 6) % 7; // Monday-first, like the week strip
+      const daysInMonth = new Date(f.getFullYear(), f.getMonth() + 1, 0).getDate();
+      const today = todayISO();
+      const chosen = input.value;
+      if (grid.contains(document.activeElement)) moveFocus = true; // keep focus inside when the days are replaced
+      titleEl.textContent = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(first);
+      let html = WEEKDAY_SHORT.map(w => `<span class="cal-wd" aria-hidden="true">${w.slice(0, 2)}</span>`).join('');
+      html += '<span></span>'.repeat(lead);
+      for (let n = 1; n <= daysInMonth; n++) {
+        const d = new Date(f.getFullYear(), f.getMonth(), n);
+        const iso = toISO(d);
+        const cls = ['cal-day'];
+        if (iso === today) cls.push('today');
+        if (iso === chosen) cls.push('selected');
+        html += `<button type="button" class="${cls.join(' ')}" data-date="${iso}" tabindex="${iso === focusIso ? 0 : -1}"`
+          + ` aria-label="${fmtLong.format(d)}"${iso === chosen ? ' aria-pressed="true"' : ''}>${n}</button>`;
+      }
+      grid.innerHTML = html;
+      if (p.isOpen) placePopup(p); // 5- vs 6-row months change the height
+      if (moveFocus) grid.querySelector(`[data-date="${focusIso}"]`).focus({ preventScroll: true });
+    }
+
+    function shiftMonth(n) {
+      const f = new Date(focusIso + 'T00:00:00');
+      const day = f.getDate();
+      f.setDate(1);
+      f.setMonth(f.getMonth() + n);
+      f.setDate(Math.min(day, new Date(f.getFullYear(), f.getMonth() + 1, 0).getDate()));
+      focusIso = toISO(f);
+    }
+
+    function choose(iso) {
+      input.value = iso;
+      p.hide(true);
+    }
+
+    p.render = () => {
+      focusIso = input.value || todayISO();
+      renderMonth(false);
+    };
+    p.focusInside = () => grid.querySelector(`[data-date="${focusIso}"]`).focus({ preventScroll: true });
+
+    p.btn.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); p.show(); }
+    });
+    p.pop.querySelector('.cal-prev').addEventListener('click', () => { shiftMonth(-1); renderMonth(false); });
+    p.pop.querySelector('.cal-next').addEventListener('click', () => { shiftMonth(1); renderMonth(false); });
+    p.pop.querySelector('.cal-foot').addEventListener('click', e => {
+      const act = e.target.closest('[data-act]');
+      if (act) choose(act.dataset.act === 'today' ? todayISO() : '');
+    });
+    grid.addEventListener('click', e => {
+      const day = e.target.closest('.cal-day');
+      if (day) choose(day.dataset.date);
+    });
+    grid.addEventListener('keydown', e => {
+      const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+      const weekday = (new Date(focusIso + 'T00:00:00').getDay() + 6) % 7;
+      if (e.key in moves) focusIso = addDays(focusIso, moves[e.key]);
+      else if (e.key === 'Home') focusIso = addDays(focusIso, -weekday);
+      else if (e.key === 'End') focusIso = addDays(focusIso, 6 - weekday);
+      else if (e.key === 'PageUp') shiftMonth(-1);
+      else if (e.key === 'PageDown') shiftMonth(1);
+      else return;
+      e.preventDefault();
+      renderMonth(true);
+    });
+
+    onValueSet(input, sync);
+    sync();
+  }
+
+  document.querySelectorAll('.f-prio').forEach(enhanceSelect);
+  document.querySelectorAll('.f-due').forEach(enhanceDate);
 
   function uid() {
     return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -211,11 +461,6 @@
     seedHint.hidden = false;
   }
 
-  function setSync(label, offline) {
-    syncLabelEl.textContent = label;
-    syncStateEl.classList.toggle('offline', !!offline);
-  }
-
   async function initStore() {
     try {
       db = await claude.use('db');
@@ -225,7 +470,6 @@
 
     if (db) {
       tasksCol = db.collection('tasks');
-      setSync('Syncing across devices');
       try {
         await seedDbIfNeeded();
       } catch (e) { /* ignore seed race */ }
@@ -235,7 +479,6 @@
           render();
         },
         err => {
-          setSync('Storage unavailable — working locally', true);
           db = null; tasksCol = null;
           tasks = loadLocal();
           seedLocalIfNeeded();
@@ -243,7 +486,6 @@
         }
       );
     } else {
-      setSync('This device only', true);
       tasks = loadLocal();
       seedLocalIfNeeded();
       render();

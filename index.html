@@ -7,6 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="preload" as="image" href="images/arrow_prev_pressed.svg">
+<link rel="preload" as="image" href="images/arrow_next_pressed.svg">
+<link rel="preload" as="image" href="images/plus_pressed.svg">
+<link rel="preload" as="image" href="images/day_window_pressed.svg">
+<link rel="preload" as="image" href="images/add_button_pressed.svg">
+<link rel="preload" as="image" href="images/cancel_button_pressed.svg">
+<link rel="preload" as="image" href="images/delete_button_pressed.svg">
 </head>
 <body>
 <div class="wrap">
@@ -15,7 +22,6 @@
       <h1>Tasks</h1>
       <div class="date" id="todayLabel"></div>
     </div>
-    <div id="syncState"><span class="dot"></span><span id="syncLabel">Connecting…</span></div>
   </header>
 
   <div class="overview">
@@ -27,11 +33,11 @@
 
     <div class="week-block">
       <div class="week-head">
-        <button type="button" class="wk-arrow" id="weekPrev" aria-label="Previous week">‹</button>
+        <button type="button" class="wk-arrow wk-prev" id="weekPrev" aria-label="Previous week"></button>
         <div class="week-label" id="weekLabel"></div>
         <div class="week-nav-right">
           <button type="button" class="week-today" id="weekToday">Today</button>
-          <button type="button" class="wk-arrow" id="weekNext" aria-label="Next week">›</button>
+          <button type="button" class="wk-arrow wk-next" id="weekNext" aria-label="Next week"></button>
         </div>
       </div>
       <div class="week-strip" id="weekStrip"></div>
@@ -59,27 +65,26 @@
   <div class="hint" id="seedHint" hidden>These are examples — edit or delete them and add your own tasks.</div>
 </div>
 
-<button type="button" class="fab" id="fabAdd" aria-label="New task">+</button>
+<button type="button" class="fab" id="fabAdd" aria-label="New task"></button>
 
 <div class="modal-overlay" id="modalOverlay" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+  <div class="modal modal-task" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
     <div class="modal-head">
       <h2 id="modalHeading">New task</h2>
-      <button type="button" class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
     <form id="addForm">
       <div class="modal-body">
-        <input id="titleInput" type="text" placeholder="Task name" maxlength="200" required>
+        <input id="titleInput" class="f-title" type="text" placeholder="Task name" maxlength="200" required>
         <div class="drow">
-          <input id="dueInput" type="date">
-          <select id="prioInput">
+          <input id="dueInput" class="f-due" type="date">
+          <select id="prioInput" class="f-prio">
             <option value="low">Low priority</option>
             <option value="medium" selected>Medium priority</option>
             <option value="high">High priority</option>
           </select>
         </div>
         <input id="tagsInput" type="text" placeholder="Tags, comma separated">
-        <textarea id="descInput" placeholder="Note (optional)"></textarea>
+        <textarea id="descInput" class="f-desc" placeholder="Note (optional)"></textarea>
       </div>
       <div class="modal-actions">
         <button type="button" class="ghost" id="modalCancel">Cancel</button>
@@ -90,27 +95,26 @@
 </div>
 
 <div class="modal-overlay" id="editOverlay" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editHeading">
+  <div class="modal modal-task" role="dialog" aria-modal="true" aria-labelledby="editHeading">
     <div class="modal-head">
       <h2 id="editHeading">Task</h2>
-      <button type="button" class="modal-close" id="editClose" aria-label="Close">×</button>
     </div>
     <form id="editForm">
       <div class="modal-body">
-        <input id="editTitle" type="text" placeholder="Task name" maxlength="200" required>
+        <input id="editTitle" class="f-title" type="text" placeholder="Task name" maxlength="200" required>
         <div class="drow">
-          <input id="editDue" type="date">
-          <select id="editPrio">
+          <input id="editDue" class="f-due" type="date">
+          <select id="editPrio" class="f-prio">
             <option value="low">Low priority</option>
             <option value="medium">Medium priority</option>
             <option value="high">High priority</option>
           </select>
         </div>
         <input id="editTags" type="text" placeholder="Tags, comma separated">
-        <textarea id="editDesc" placeholder="Note (optional)"></textarea>
+        <textarea id="editDesc" class="f-desc" placeholder="Note (optional)"></textarea>
       </div>
       <div class="modal-actions between">
-        <button type="button" class="link" id="editDelete">Delete</button>
+        <button type="button" class="del-btn" id="editDelete" aria-label="Delete task" title="Delete task"></button>
         <div class="right">
           <button type="button" class="ghost" id="editCancel">Cancel</button>
           <button type="submit" class="primary">Save</button>
