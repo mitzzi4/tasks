@@ -11,6 +11,7 @@
   --warn: #C4841A;
   --low: #6B7280;
   --done: #B4B5AE;
+  --ghost-sprite: none; /* white outline sprite would vanish on a light modal */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +28,7 @@
     --warn: #E5AA55;
     --low: #9CA3AF;
     --done: #4B4C52;
+    --ghost-sprite: url('images/cancel_button_normal.svg');
   }
 }
 :root[data-theme="dark"] {
@@ -42,6 +44,7 @@
   --warn: #E5AA55;
   --low: #9CA3AF;
   --done: #4B4C52;
+  --ghost-sprite: url('images/cancel_button_normal.svg');
 }
 
 @keyframes taskIn {
@@ -352,6 +355,33 @@ button.detailsToggle:hover { color: var(--text); }
 }
 .modal-actions.between { justify-content: space-between; }
 .modal-actions .right { display: flex; gap: 8px; }
+/* modal buttons: 9-slice sprites, corners stay at native size whatever the button width */
+.modal-actions button.primary,
+.modal-actions button.ghost {
+  min-width: 99px;
+  min-height: 34px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.modal-actions button.primary {
+  border: 0 solid transparent;
+  border-image: url('images/add_button_normal.svg') 12 fill / 12px;
+  background: none;
+  color: #120C33;
+}
+.modal-actions button.primary:active {
+  border-image-source: url('images/add_button_pressed.svg');
+  color: #14401F;
+}
+.modal-actions button.ghost {
+  border: 1px solid var(--text);
+  border-image: var(--ghost-sprite) 12 fill / 12px;
+  color: var(--text);
+}
+.modal-actions button.ghost:active {
+  border-image-source: url('images/cancel_button_pressed.svg');
+  color: #3D0718;
+}
 #titleInput { font-size: 16px; }
 
 input, select, textarea {
