@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="preload" as="image" href="images/arrow_prev_pressed.svg">
+<link rel="preload" as="image" href="images/arrow_next_pressed.svg">
 </head>
 <body>
 <div class="wrap">
@@ -27,11 +29,11 @@
 
     <div class="week-block">
       <div class="week-head">
-        <button type="button" class="wk-arrow" id="weekPrev" aria-label="Previous week">‹</button>
+        <button type="button" class="wk-arrow wk-prev" id="weekPrev" aria-label="Previous week"></button>
         <div class="week-label" id="weekLabel"></div>
         <div class="week-nav-right">
           <button type="button" class="week-today" id="weekToday">Today</button>
-          <button type="button" class="wk-arrow" id="weekNext" aria-label="Next week">›</button>
+          <button type="button" class="wk-arrow wk-next" id="weekNext" aria-label="Next week"></button>
         </div>
       </div>
       <div class="week-strip" id="weekStrip"></div>
