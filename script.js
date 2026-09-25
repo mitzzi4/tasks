@@ -11,8 +11,6 @@
 
   const listEl = document.getElementById('list');
   const seedHint = document.getElementById('seedHint');
-  const syncStateEl = document.getElementById('syncState');
-  const syncLabelEl = document.getElementById('syncLabel');
 
   document.getElementById('todayLabel').textContent =
     new Intl.DateTimeFormat('en-US', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -211,11 +209,6 @@
     seedHint.hidden = false;
   }
 
-  function setSync(label, offline) {
-    syncLabelEl.textContent = label;
-    syncStateEl.classList.toggle('offline', !!offline);
-  }
-
   async function initStore() {
     try {
       db = await claude.use('db');
@@ -225,7 +218,6 @@
 
     if (db) {
       tasksCol = db.collection('tasks');
-      setSync('Syncing across devices');
       try {
         await seedDbIfNeeded();
       } catch (e) { /* ignore seed race */ }
@@ -235,7 +227,6 @@
           render();
         },
         err => {
-          setSync('Storage unavailable — working locally', true);
           db = null; tasksCol = null;
           tasks = loadLocal();
           seedLocalIfNeeded();
@@ -243,7 +234,6 @@
         }
       );
     } else {
-      setSync('This device only', true);
       tasks = loadLocal();
       seedLocalIfNeeded();
       render();

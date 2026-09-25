@@ -56,10 +56,6 @@
   45% { transform: scale(1.22); }
   100% { transform: scale(1); }
 }
-@keyframes syncPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
-}
 @keyframes modalIn {
   from { opacity: 0; transform: scale(0.95) translateY(8px); }
   to { opacity: 1; transform: none; }
@@ -108,20 +104,6 @@ header.top .date {
   text-transform: capitalize;
   margin-top: 2px;
 }
-#syncState {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-top: 4px;
-}
-#syncState .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #3EAE6B;
-}
-#syncState:not(.offline) .dot { animation: syncPulse 2.2s ease-in-out infinite; }
-#syncState.offline .dot { background: var(--warn); }
 
 .overview {
   display: flex;
@@ -589,7 +571,6 @@ button.link:hover { color: var(--danger); }
 
   header.top h1 { font-size: 25px; }
   header.top .date { font-size: 14px; }
-  #syncState { font-size: 12.5px; }
 
   .overview { padding: 16px 14px 18px; gap: 22px; }
   .stat .n { font-size: 27px; }
