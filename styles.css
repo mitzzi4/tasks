@@ -95,6 +95,10 @@
 }
 
 * { box-sizing: border-box; }
+html {
+  touch-action: manipulation; /* no double-tap zoom on phones */
+  -webkit-text-size-adjust: 100%; /* iOS: don't inflate text in landscape */
+}
 body {
   background: var(--bg);
   color: var(--text);
@@ -867,12 +871,17 @@ button.ghost:hover { background: var(--surface-hover); }
   .fab { right: 16px; bottom: 16px; }
   .modal { padding: 18px; border-radius: 14px; }
   .modal-head h2 { font-size: 18px; }
+  /* iOS zooms into any focused field under 16px. The title is focused while the modal
+     is still scaled to 0.95, so it needs a little headroom (17 × 0.95 > 16) */
+  .modal-task .modal-body input,
+  .modal-task .modal-body textarea { font-size: 16px; }
+  .modal-task .modal-body .f-title { font-size: 17px; }
 
   button { font-size: 15px; padding: 11px 16px; }
   button.ghost, button.primary { padding: 11px 18px; }
 
   .toolbar { font-size: 14.5px; gap: 16px; row-gap: 12px; }
-  #searchInput { font-size: 15px; padding: 6px 0; }
+  #searchInput { font-size: 16px; padding: 6px 0; }
 
   .group-header { font-size: 12.5px; padding: 20px 2px 9px; }
   .group-header .gh-count { font-size: 11.5px; }
