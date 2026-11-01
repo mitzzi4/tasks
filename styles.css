@@ -1,70 +1,77 @@
 :root {
   --bg: #FFFFFF;
-  --surface-hover: #F7F7F5;
-  --border: #EAEAE6;
-  --border-strong: #D8D8D2;
-  --text: #17181A;
-  --text-muted: #8A8B85;
-  --accent: #3D4FE0;
+  --surface-hover: #F4F4FA;
+  --border: #E6E6F0;
+  --border-strong: #CFCFDD;
+  --text: #1A182D;
+  --text-muted: #77768C;
+  --accent: #7571FF;
   --accent-ink: #FFFFFF;
-  --danger: #D6432F;
-  --warn: #C4841A;
-  --low: #6B7280;
-  --done: #B4B5AE;
+  --danger: #D93A3A; /* #FF5858 from the palette is too faint for small text on white */
+  --warn: #FFC04F;
+  --low: #FFFFFF;
+  --low-ring: #1A182D; /* a white dot needs an outline on a light page */
+  --done: #B9B8C9;
   --ghost-sprite: none; /* white outline sprite would vanish on a light modal */
-  /* task windows (new / edit) */
+  /* task windows (new / edit) and the custom dropdowns; the next four are the same in both themes */
+  --m-accent: #7571FF;
+  --m-accent-ink: #120C33;
+  --m-hover: #AAFF74;
+  --m-hover-ink: #14401F;
   --m-bg: #FFFFFF;
-  --m-line: #1C1B2B;
-  --m-text: #17181A;
-  --m-muted: rgba(23, 24, 26, 0.5);
+  --m-line: #1A182D;
+  --m-text: #1A182D;
+  --m-muted: rgba(26, 24, 45, 0.5);
   --m-pop: #FFFFFF;
-  --m-pop-shadow: rgba(28, 27, 43, 0.18);
+  --m-pop-shadow: rgba(26, 24, 45, 0.18);
   --m-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #131316;
-    --surface-hover: #1C1C20;
-    --border: #26262B;
-    --border-strong: #35353B;
-    --text: #F2F2F0;
-    --text-muted: #83848A;
-    --accent: #7C8AFF;
-    --accent-ink: #101018;
-    --danger: #F0806C;
-    --warn: #E5AA55;
-    --low: #9CA3AF;
-    --done: #4B4C52;
+    --bg: #1A182D;
+    --surface-hover: #252338;
+    --border: #322F4A;
+    --border-strong: #4C4966;
+    --text: #FFFFFF;
+    --text-muted: #9D9BB5;
+    --accent: #7571FF;
+    --accent-ink: #FFFFFF;
+    --danger: #FF5858;
+    --warn: #FFC04F;
+    --low: #FFFFFF;
+    --low-ring: transparent;
+    --done: #54516F;
     --ghost-sprite: url('images/cancel_button_normal.svg');
-    --m-bg: #1C1B2B;
+    --m-bg: #1A182D;
     --m-line: #FFFFFF;
     --m-text: #FFFFFF;
     --m-muted: rgba(255, 255, 255, 0.5);
-    --m-pop: #252438;
+    --m-pop: #252338;
     --m-pop-shadow: rgba(0, 0, 0, 0.45);
     --m-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #131316;
-  --surface-hover: #1C1C20;
-  --border: #26262B;
-  --border-strong: #35353B;
-  --text: #F2F2F0;
-  --text-muted: #83848A;
-  --accent: #7C8AFF;
-  --accent-ink: #101018;
-  --danger: #F0806C;
-  --warn: #E5AA55;
-  --low: #9CA3AF;
-  --done: #4B4C52;
+  --bg: #1A182D;
+  --surface-hover: #252338;
+  --border: #322F4A;
+  --border-strong: #4C4966;
+  --text: #FFFFFF;
+  --text-muted: #9D9BB5;
+  --accent: #7571FF;
+  --accent-ink: #FFFFFF;
+  --danger: #FF5858;
+  --warn: #FFC04F;
+  --low: #FFFFFF;
+  --low-ring: transparent;
+  --done: #54516F;
   --ghost-sprite: url('images/cancel_button_normal.svg');
-  --m-bg: #1C1B2B;
+  --m-bg: #1A182D;
   --m-line: #FFFFFF;
   --m-text: #FFFFFF;
   --m-muted: rgba(255, 255, 255, 0.5);
-  --m-pop: #252438;
+  --m-pop: #252338;
   --m-pop-shadow: rgba(0, 0, 0, 0.45);
   --m-scheme: dark;
 }
@@ -143,19 +150,34 @@ header.top .date {
   padding: 18px 18px 20px;
 }
 
+/* Active / Overdue counters double as filters: tap to list only those tasks, tap again to clear */
 .stats {
   display: flex;
-  align-items: center;
+  gap: 8px;
+  margin: -8px -10px 0; /* the cards' own padding keeps the numbers where they were */
 }
 .stat {
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
-  padding: 0 18px;
-  border-left: 1px solid var(--border);
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
 }
-.stat:first-child { padding-left: 0; border-left: none; }
+.stat:hover { background: var(--border); }
+.stat:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stat[aria-pressed="true"] {
+  background: #7571FF;
+  box-shadow: inset -3px -3px 4px rgba(0, 0, 0, 0.25);
+}
+.stats .stat[aria-pressed="true"] .n,
+.stats .stat[aria-pressed="true"] .lbl { color: #FFFFFF; }
 .stat .n {
   font-size: 24px;
   font-weight: 700;
@@ -275,30 +297,6 @@ header.top .date {
   color: var(--chip-ink);
 }
 
-.list-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 6px;
-}
-.list-title {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-button.detailsToggle {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 0;
-  cursor: pointer;
-}
-button.detailsToggle:hover { color: var(--text); }
 
 .fab {
   position: fixed;
@@ -399,13 +397,8 @@ button.detailsToggle:hover { color: var(--text); }
   border-image-source: url('images/cancel_button_pressed.svg');
   color: #3D0718;
 }
-/* task windows (new + edit): fields grouped in an outlined box, buttons below it.
-   Theme-dependent colors (--m-bg, --m-line, --m-text…) live in :root; these stay the same in both themes */
+/* task windows (new + edit): fields grouped in an outlined box, buttons below it. Colors (--m-*) live in :root */
 .modal-task {
-  --m-accent: #7571FF;
-  --m-accent-ink: #120C33;
-  --m-hover: #AAFF74;
-  --m-hover-ink: #14401F;
   color-scheme: var(--m-scheme);
   background: var(--m-bg);
   max-width: 380px;
@@ -502,8 +495,8 @@ button.detailsToggle:hover { color: var(--text); }
   height: 16px;
   margin-top: -8px;
 }
-.picker-date .picker-btn { font-family: 'IBM Plex Mono', monospace; }
-.picker-date .picker-btn.no-value { font-family: 'Manrope', system-ui, sans-serif; color: var(--m-muted); }
+.picker-date .picker-btn { font-variant-numeric: tabular-nums; }
+.picker-date .picker-btn.no-value { color: var(--m-muted); }
 /* every option label sits in the same grid cell, so the button is as wide as the longest one */
 .picker-labels { display: grid; }
 .picker-labels > span { grid-area: 1 / 1; visibility: hidden; white-space: nowrap; }
@@ -678,38 +671,121 @@ button.ghost {
 }
 button.ghost:hover { background: var(--surface-hover); }
 
+/* search bar (search_field.svg): one purple strip, search text on the left,
+   tag + sort dropdowns as outlined pills on the right — same in both themes.
+   All text here and on the Completed / All tasks buttons is 16px (also keeps iOS from zooming on focus) */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  font-size: 13px;
-}
-.toolbar select {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  padding: 4px 0;
-  font-weight: 500;
-}
-.toolbar select:focus { outline: none; }
-.toolbar label {
-  display: flex;
-  align-items: center;
   gap: 6px;
-  color: var(--text-muted);
-  cursor: pointer;
+  min-height: 45px; /* same height as the Completed / All tasks buttons below */
+  margin-top: -14px; /* 18px under the week block instead of the page's 32px section gap */
+  padding: 7px 6px 7px 12px;
+  border-radius: 10px;
+  background: var(--m-accent);
+  box-shadow: inset -3px -3px 4px rgba(0, 0, 0, 0.25);
+}
+.toolbar .picker { flex: 0 1 auto; min-width: 0; }
+.toolbar .picker-btn {
+  min-width: 75px;
+  border-color: #FFFFFF;
+  border-radius: 10px;
+  color: #FFFFFF;
+  font-size: 16px;
+  line-height: 29px; /* 31px pill in a 45px bar, the same proportion as search_field.svg */
+  padding: 0 24px 0 10px;
+}
+/* here the pills fit their current value (not the longest option) so all three fit on a phone;
+   a very long tag name gets cut with "…" instead of squeezing the search field to nothing */
+.toolbar .picker-labels { min-width: 0; }
+.toolbar .picker-labels > span { overflow: hidden; text-overflow: ellipsis; }
+.toolbar .picker-labels > span:not(.on) { display: none; }
+.toolbar .picker-btn:focus-visible,
+.toolbar .picker.open .picker-btn {
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 1px #FFFFFF;
+}
+.toolbar .picker-select .picker-btn::after {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='291.4 13 6.2 5.17'%3E%3Cpath d='M295.339 17.7088C294.944 18.3159 294.056 18.3159 293.661 17.7088L291.606 14.5447C291.174 13.8794 291.652 13 292.445 13L296.555 13C297.348 13 297.826 13.8794 297.394 14.5447L295.339 17.7088Z'/%3E%3C/svg%3E");
+  right: 10px;
+  width: 8px;
+  height: 7px;
+  margin-top: -3.5px;
+  background-color: #FFFFFF;
+}
+/* row under the toolbar: Completed on the left, All tasks on the right */
+.filter-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: -14px; /* sits closer to the toolbar than the page's 32px section gap */
+}
+/* toggle buttons (Completed, All tasks): outline when off; when on they fill purple, the label
+   slides right and a check draws itself on the left (sizes and colors from completed_*.svg) */
+.toggle-btn {
+  position: relative;
+  flex: none;
+  width: 152px;
+  height: 45px;
+  padding: 0;
+  border: 1px solid var(--text);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
   font-weight: 500;
+  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.1s ease;
+}
+.toggle-btn:hover { filter: brightness(1.08); }
+.toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toggle-label {
+  display: block;
+  transition: transform 0.25s ease;
+}
+.toggle-check {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 54px;
+  height: 45px;
+  fill: none;
+  stroke: #FFFFFF;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.toggle-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  transition: stroke-dashoffset 0.25s ease;
+}
+.toggle-btn[aria-pressed="true"] {
+  background: #7571FF;
+  border-color: transparent;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: inset -3px -3px 4px rgba(0, 0, 0, 0.25);
+}
+.toggle-btn[aria-pressed="true"] .toggle-label { transform: translateX(15px); }
+.toggle-btn[aria-pressed="true"] .toggle-check { opacity: 1; }
+.toggle-btn[aria-pressed="true"] .toggle-check path {
+  stroke-dashoffset: 0;
+  transition-delay: 0.08s; /* starts drawing once the label has begun to move aside */
 }
 #searchInput {
   flex: 1;
-  min-width: 100px;
+  min-width: 60px;
   border: none;
+  border-radius: 0;
   background: none;
-  padding: 4px 0;
-  font-size: 13.5px;
+  color: #FFFFFF;
+  padding: 2px 0;
+  font-size: 16px;
+  font-weight: 500;
 }
-#searchInput::placeholder { color: var(--text-muted); }
+#searchInput::placeholder { color: rgba(255, 255, 255, 0.85); }
 
 #list {
   display: flex;
@@ -766,7 +842,7 @@ button.ghost:hover { background: var(--surface-hover); }
   flex: none;
   width: 18px; height: 18px;
   border-radius: 50%;
-  border: 1.5px solid var(--border-strong);
+  border: 1.5px solid var(--accent);
   margin-top: 2px;
   display: flex; align-items: center; justify-content: center;
   background: none;
@@ -774,13 +850,13 @@ button.ghost:hover { background: var(--surface-hover); }
 }
 .checkbox svg { width: 10px; height: 10px; overflow: visible; }
 .checkbox svg path {
-  stroke: var(--bg);
+  stroke: var(--m-hover-ink);
   stroke-dasharray: 16;
   stroke-dashoffset: 16;
   transition: stroke-dashoffset 0.2s ease 0.05s;
 }
 .task.done .checkbox,
-.task.checking .checkbox { background: var(--done); border-color: var(--done); }
+.task.checking .checkbox { background: var(--m-hover); border-color: var(--m-hover); }
 .task.done .checkbox svg path,
 .task.checking .checkbox svg path { stroke-dashoffset: 0; }
 .task.checking .checkbox { animation: checkPop 0.3s ease; }
@@ -802,8 +878,9 @@ button.ghost:hover { background: var(--surface-hover); }
 }
 .task-title.p-high .dot { background: var(--danger); }
 .task-title.p-medium .dot { background: var(--warn); }
+.task-title.p-low .dot { box-shadow: 0 0 0 1px var(--low-ring); }
 .task.done .task-title { text-decoration: line-through; color: var(--text-muted); font-weight: 500; }
-.task.done .task-title .dot { background: var(--done); }
+.task.done .task-title .dot { background: var(--done); box-shadow: none; }
 .task-meta {
   display: flex;
   align-items: center;
@@ -815,12 +892,12 @@ button.ghost:hover { background: var(--surface-hover); }
   color: var(--text-muted);
 }
 .due {
-  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 .due.overdue { color: var(--danger); font-weight: 600; }
 .tag {
-  background: var(--surface-hover);
-  border-radius: 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
   padding: 1px 7px;
   font-size: 11px;
 }
@@ -854,7 +931,6 @@ button.ghost:hover { background: var(--surface-hover); }
   .overview { padding: 16px 14px 18px; gap: 22px; }
   .stat .n { font-size: 27px; }
   .stat .lbl { font-size: 13px; }
-  .stat { padding: 0 12px; }
 
   .week-label { font-size: 14.5px; text-align: center; }
   .week-today { font-size: 14px; padding: 8px 6px; }
@@ -865,8 +941,6 @@ button.ghost:hover { background: var(--surface-hover); }
   .day-dots { max-width: 34px; }
   .day-dots .ddot { width: 5px; height: 5px; }
 
-  .list-title { font-size: 17px; }
-  #clearDayBtn.detailsToggle { font-size: 14px; }
 
   .fab { right: 16px; bottom: 16px; }
   .modal { padding: 18px; border-radius: 14px; }
@@ -880,8 +954,6 @@ button.ghost:hover { background: var(--surface-hover); }
   button { font-size: 15px; padding: 11px 16px; }
   button.ghost, button.primary { padding: 11px 18px; }
 
-  .toolbar { font-size: 14.5px; gap: 16px; row-gap: 12px; }
-  #searchInput { font-size: 16px; padding: 6px 0; }
 
   .group-header { font-size: 12.5px; padding: 20px 2px 9px; }
   .group-header .gh-count { font-size: 11.5px; }

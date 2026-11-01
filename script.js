@@ -176,16 +176,22 @@
 
   function enhanceSelect(sel) {
     const p = makePicker(sel, 'select');
-    const opts = Array.from(sel.options);
     p.btn.setAttribute('aria-haspopup', 'listbox');
-    p.btn.innerHTML = '<span class="picker-labels">' + opts.map(o => `<span>${escapeHtml(o.text)}</span>`).join('') + '</span>';
-    const labels = Array.from(p.btn.firstChild.children);
     p.pop.setAttribute('role', 'listbox');
     p.pop.tabIndex = -1;
-    p.pop.innerHTML = opts.map((o, i) =>
-      `<div class="picker-opt" role="option" id="${sel.id}Opt${i}" data-i="${i}">${escapeHtml(o.text)}</div>`).join('');
-    const items = Array.from(p.pop.children);
+    let opts = [], labels = [], items = [];
     let active = 0;
+
+    // (re)built from the <option>s, so lists filled at runtime (the tag filter) stay in step
+    function build() {
+      opts = Array.from(sel.options);
+      p.btn.innerHTML = '<span class="picker-labels">' + opts.map(o => `<span>${escapeHtml(o.text)}</span>`).join('') + '</span>';
+      labels = Array.from(p.btn.firstChild.children);
+      p.pop.innerHTML = opts.map((o, i) =>
+        `<div class="picker-opt" role="option" id="${sel.id}Opt${i}" data-i="${i}">${escapeHtml(o.text)}</div>`).join('');
+      items = Array.from(p.pop.children);
+      sync();
+    }
 
     function setActive(i) {
       active = (i + items.length) % items.length;
@@ -198,8 +204,10 @@
       items.forEach((el, j) => el.setAttribute('aria-selected', String(j === cur)));
     }
     function choose(i) {
+      const changed = sel.value !== opts[i].value;
       sel.value = opts[i].value;
       p.hide(true);
+      if (changed) sel.dispatchEvent(new Event('change', { bubbles: true })); // like a real <select>
     }
 
     p.render = () => {
@@ -230,7 +238,8 @@
     });
 
     onValueSet(sel, sync);
-    sync();
+    new MutationObserver(build).observe(sel, { childList: true });
+    build();
   }
 
   function enhanceDate(input) {
@@ -336,7 +345,7 @@
     sync();
   }
 
-  document.querySelectorAll('.f-prio').forEach(enhanceSelect);
+  document.querySelectorAll('.f-prio, #tagFilter, #sortSelect').forEach(enhanceSelect);
   document.querySelectorAll('.f-due').forEach(enhanceDate);
 
   function uid() {
@@ -369,10 +378,16 @@
   // ---------- week planner state ----------
   let weekAnchor = todayISO();
   let selectedDate = todayISO();
+  let statFilter = null; // null | 'active' | 'overdue' — set by tapping a counter in the overview
 
   function setSelectedDate(iso) {
     selectedDate = iso;
+    statFilter = null; // any day / "All tasks" choice replaces the counter filter
     document.getElementById('dueInput').value = iso || '';
+  }
+
+  function isOverdue(t) {
+    return !t.completed && t.dueDate && t.dueDate < todayISO();
   }
 
   function renderWeek() {
@@ -421,7 +436,16 @@
     setSelectedDate(selectedDate === iso ? null : iso);
     render();
   });
-  document.getElementById('clearDayBtn').addEventListener('click', () => { setSelectedDate(null); render(); });
+  // "All tasks" is on while no day or counter filter is picked; turning it off goes back to today
+  document.getElementById('clearDayBtn').addEventListener('click', () => {
+    if (selectedDate || statFilter) {
+      setSelectedDate(null);
+    } else {
+      weekAnchor = todayISO();
+      setSelectedDate(todayISO());
+    }
+    render();
+  });
   setSelectedDate(selectedDate);
 
   function exampleTasks() {
@@ -536,6 +560,8 @@
     const sel = document.getElementById('tagFilter');
     const current = sel.value;
     const tags = collectTags();
+    // render() runs on every keystroke; only touch the options (and the custom list built from them) when tags change
+    if (Array.from(sel.options).slice(1).map(o => o.value).join('\n') === tags.join('\n')) return;
     sel.innerHTML = '<option value="">All tags</option>' + tags.map(t => `<option value="${escapeAttr(t)}">${escapeHtml(t)}</option>`).join('');
     if (tags.includes(current)) sel.value = current;
   }
@@ -590,32 +616,22 @@
     refreshTagFilter();
     renderWeek();
 
-    const listTitleEl = document.getElementById('listTitle');
-    const clearDayBtn = document.getElementById('clearDayBtn');
-    if (selectedDate) {
-      const label = new Intl.DateTimeFormat('en-US', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(selectedDate + 'T00:00:00'));
-      listTitleEl.textContent = label.charAt(0).toUpperCase() + label.slice(1);
-      clearDayBtn.hidden = false;
-    } else {
-      listTitleEl.textContent = 'All tasks';
-      clearDayBtn.hidden = true;
-    }
+    document.getElementById('clearDayBtn').setAttribute('aria-pressed', String(!selectedDate && !statFilter));
+    document.querySelectorAll('.stat').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === statFilter)));
 
-    const active = tasks.filter(t => !t.completed).length;
-    const overdue = tasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayISO()).length;
-    const done = tasks.filter(t => t.completed).length;
-    document.getElementById('statActive').textContent = active;
-    document.getElementById('statOverdue').textContent = overdue;
-    document.getElementById('statDone').textContent = done;
+    document.getElementById('statActive').textContent = tasks.filter(t => !t.completed).length;
+    document.getElementById('statOverdue').textContent = tasks.filter(isOverdue).length;
 
     const search = document.getElementById('searchInput').value.trim().toLowerCase();
     const tagFilter = document.getElementById('tagFilter').value;
-    const showDone = document.getElementById('showDone').checked;
+    const showDone = document.getElementById('showDone').getAttribute('aria-pressed') === 'true';
     const sortMode = document.getElementById('sortSelect').value;
 
     let items = tasks.filter(t => {
       if (selectedDate && t.dueDate !== selectedDate) return false;
       if (!showDone && t.completed) return false;
+      if (statFilter === 'active' && t.completed) return false;
+      if (statFilter === 'overdue' && !isOverdue(t)) return false;
       if (tagFilter && !(t.tags || []).includes(tagFilter)) return false;
       if (search && !(t.title.toLowerCase().includes(search) || (t.description || '').toLowerCase().includes(search))) return false;
       return true;
@@ -624,7 +640,9 @@
     const currentIds = new Set(items.map(t => t.id));
 
     if (items.length === 0) {
-      listEl.innerHTML = selectedDate
+      listEl.innerHTML = statFilter === 'overdue'
+        ? `<div class="empty"><div class="big">No overdue tasks</div>Everything is on schedule.</div>`
+        : selectedDate
         ? `<div class="empty"><div class="big">Nothing planned for this day</div>Tap the “+” button in the bottom right — the task will be added to this day.</div>`
         : `<div class="empty"><div class="big">Nothing here yet</div>Tap the “+” button in the bottom right to add your first task.</div>`;
       knownIds = currentIds;
@@ -696,7 +714,24 @@
   });
 
   ['searchInput'].forEach(id => document.getElementById(id).addEventListener('input', render));
-  ['tagFilter', 'sortSelect', 'showDone'].forEach(id => document.getElementById(id).addEventListener('change', render));
+  ['tagFilter', 'sortSelect'].forEach(id => document.getElementById(id).addEventListener('change', render));
+  document.getElementById('showDone').addEventListener('click', e => {
+    const btn = e.currentTarget;
+    btn.setAttribute('aria-pressed', String(btn.getAttribute('aria-pressed') !== 'true'));
+    statFilter = null; // "Completed" contradicts both counter filters
+    render();
+  });
+
+  // Active / Overdue counters: show only those tasks across all dates; tap again to clear
+  document.querySelector('.stats').addEventListener('click', e => {
+    const btn = e.target.closest('.stat');
+    if (!btn) return;
+    const filter = statFilter === btn.dataset.filter ? null : btn.dataset.filter;
+    setSelectedDate(null); // also resets statFilter, so set it afterwards
+    statFilter = filter;
+    if (filter) document.getElementById('showDone').setAttribute('aria-pressed', 'false');
+    render();
+  });
 
   listEl.addEventListener('click', e => {
     const li = e.target.closest('.task');

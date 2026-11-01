@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Tasks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
 <link rel="preload" as="image" href="images/arrow_prev_pressed.svg">
 <link rel="preload" as="image" href="images/arrow_next_pressed.svg">
@@ -26,9 +26,8 @@
 
   <div class="overview">
     <div class="stats">
-      <div class="stat"><div class="n" id="statActive">0</div><div class="lbl">Active</div></div>
-      <div class="stat overdue"><div class="n" id="statOverdue">0</div><div class="lbl">Overdue</div></div>
-      <div class="stat"><div class="n" id="statDone">0</div><div class="lbl">Done</div></div>
+      <button type="button" class="stat" data-filter="active" aria-pressed="false"><span class="n" id="statActive">0</span><span class="lbl">Active</span></button>
+      <button type="button" class="stat overdue" data-filter="overdue" aria-pressed="false"><span class="n" id="statOverdue">0</span><span class="lbl">Overdue</span></button>
     </div>
 
     <div class="week-block">
@@ -44,11 +43,6 @@
     </div>
   </div>
 
-  <div class="list-head">
-    <div class="list-title" id="listTitle"></div>
-    <button type="button" class="detailsToggle" id="clearDayBtn" hidden>All tasks ×</button>
-  </div>
-
   <div class="toolbar">
     <input id="searchInput" type="text" placeholder="Search…">
     <select id="tagFilter"><option value="">All tags</option></select>
@@ -58,7 +52,17 @@
       <option value="priority">By priority</option>
       <option value="created">By date added</option>
     </select>
-    <label><input type="checkbox" id="showDone"> Completed</label>
+  </div>
+
+  <div class="filter-row">
+    <button type="button" class="toggle-btn" id="showDone" aria-pressed="false">
+      <svg class="toggle-check" viewBox="0 0 54 45" aria-hidden="true"><path d="M18.86 21L24.96 26.57L35.14 15.43"/></svg>
+      <span class="toggle-label">Completed</span>
+    </button>
+    <button type="button" class="toggle-btn" id="clearDayBtn" aria-pressed="false">
+      <svg class="toggle-check" viewBox="0 0 54 45" aria-hidden="true"><path d="M18.86 21L24.96 26.57L35.14 15.43"/></svg>
+      <span class="toggle-label">All tasks</span>
+    </button>
   </div>
 
   <div id="list"></div>
