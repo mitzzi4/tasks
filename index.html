@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Tasks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=Varela+Round&display=swap">
 <link rel="stylesheet" href="styles.css">
 <link rel="preload" as="image" href="images/arrow_prev_pressed.svg">
 <link rel="preload" as="image" href="images/arrow_next_pressed.svg">
@@ -16,6 +16,20 @@
 <link rel="preload" as="image" href="images/delete_button_pressed.svg">
 </head>
 <body>
+<div class="sky" aria-hidden="true">
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <div class="cloud c4"></div>
+  <div class="bubble b1"></div>
+  <div class="bubble b2"></div>
+  <div class="bubble b3"></div>
+  <div class="bubble b4"></div>
+  <div class="bubble b5"></div>
+  <div class="bubble b6"></div>
+  <div class="bubble b7"></div>
+</div>
 <div class="wrap">
   <header class="top">
     <div>
@@ -24,12 +38,12 @@
     </div>
   </header>
 
-  <div class="overview">
-    <div class="stats">
-      <button type="button" class="stat" data-filter="active" aria-pressed="false"><span class="n" id="statActive">0</span><span class="lbl">Active</span></button>
-      <button type="button" class="stat overdue" data-filter="overdue" aria-pressed="false"><span class="n" id="statOverdue">0</span><span class="lbl">Overdue</span></button>
-    </div>
+  <div class="stats">
+    <button type="button" class="stat" data-filter="active" aria-pressed="false"><span class="n" id="statActive">0</span><span class="lbl">Active</span></button>
+    <button type="button" class="stat overdue" data-filter="overdue" aria-pressed="false"><span class="n" id="statOverdue">0</span><span class="lbl">Overdue</span></button>
+  </div>
 
+  <div class="overview">
     <div class="week-block">
       <div class="week-head">
         <button type="button" class="wk-arrow wk-prev" id="weekPrev" aria-label="Previous week"></button>
